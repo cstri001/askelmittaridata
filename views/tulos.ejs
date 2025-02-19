@@ -1,0 +1,36 @@
+<%- include('includes/header') %>
+    <%# The inside of a forEach is plain text unless put inside the EJS tags, so.. remember to have them if not intended as plain text %>
+    <% 
+    let overallSteps = 0;
+    data.forEach(entry => { %>
+      <% overallSteps += entry.askeleet %>
+    <% }) 
+    let averageSteps = overallSteps > 0 ? Math.floor(overallSteps / data.length) : 0
+    %>
+
+    <h1><%= originalName %></h1>
+    <p>Askeleita yhteensä: <%= overallSteps %>. Keskimäärin <%= averageSteps %> askelta päivässä. </p>
+
+    <table class="mdl-data-table mdl-js-data-table">
+      <thead>
+        <tr>
+          <th>Päivämäärä</th>
+          <th>Askelmäärä</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% 
+          data.forEach(entry => { %>
+          <tr>
+            <td>
+              <%= entry.pp %>.<%= entry.kk %>.<%= entry.vvvv %>
+            </td>
+            <td>
+              <%= entry.askeleet %>
+            </td>
+          </tr>
+        <% }) 
+        %>
+      </tbody>
+    </table>
+<%- include('includes/footer') %>
