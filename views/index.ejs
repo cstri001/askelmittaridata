@@ -1,11 +1,12 @@
 <%- include('includes/header') %>
-    <h1>Askelmittaridatan lataus</h1>
+    <h1>Lisää askelmittaridata</h1>
     <form method="POST" action="/upload" enctype="multipart/form-data">
       <div class="mdl-textfield">
         <input class="mdl-textfield__input" type="file" name="tiedosto" id="tiedosto">
       </div>
       <button type="submit" class="mdl-button mdl-js-button mdl-button--raised">Lataa tiedosto</button>
     </form>
+    <p><%= virhe %></p>
     
 
 <%- include('includes/footer') %>

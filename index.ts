@@ -25,35 +25,38 @@ const uploadHandler : express.RequestHandler = multer({
 
 
 app.get('/', (req : express.Request, res : express.Response) => {
-  res.render('index');
+  res.render('index', {'virhe': ''});
 })
 
 app.post('/upload', async (req : express.Request, res : express.Response) => {
+
   uploadHandler(req, res, async (err : any) => {
     if (err instanceof multer.MulterError) {
       res.render('virhe', {'virhe': 'Jotain meni vikaan'})
     } else if (err) {
       res.render('virhe', {'virhe': 'Virheellinen tiedostomuoto. Käytä ainoastaan JSON-tiedostoja.'})
-    } else {
-      if (req.file) {
-        let fileName : string = `${req.file.filename}.json`;
-        // The original filename is in the format of e.g. "maaliskuu_2022.json". To get the month and the year for the heading in the result page,
-        // the filename is formatted here
-        let originalName : string = `${req.file.originalname}`.split(/_|.json/).join(' ')
-        let capitalizedOriginalName : string = originalName.charAt(0).toUpperCase() + originalName.slice(1)
-
-        await fs.copyFile(path.resolve(__dirname, 'tmp', String(req.file.filename)), path.resolve(__dirname, 'public', 'json', fileName));
-
-        /* Save the data from the newly saved file to a variable, and make it JSON with JSON.parse (otherwise it would be a string by default) */
-        try {
-          const data = JSON.parse(await fs.readFile(path.resolve(__dirname, 'public', 'json', fileName), {encoding: 'utf8'}))
-          res.render('tulos', { data, originalName : capitalizedOriginalName })
-        } catch (err : any) {
-          console.log('Virhe luettaessa tiedostoa! ' + err)
-        }
-
-      }
     }
+    
+    if (req.file) {
+      let fileName : string = `${req.file.filename}.json`;
+      // The original filename is in the format of e.g. "maaliskuu_2022.json". To get the month and the year for the heading in the result page,
+      // the filename is formatted here
+      let originalName : string = `${req.file.originalname}`.split(/_|.json/).join(' ')
+      let capitalizedOriginalName : string = originalName.charAt(0).toUpperCase() + originalName.slice(1)
+
+      await fs.copyFile(path.resolve(__dirname, 'tmp', String(req.file.filename)), path.resolve(__dirname, 'public', 'json', fileName));
+
+      /* Save the data from the newly saved file to a variable, and make it JSON with JSON.parse (otherwise it would be a string by default) */
+      try {
+        const data = JSON.parse(await fs.readFile(path.resolve(__dirname, 'public', 'json', fileName), {encoding: 'utf8'}))
+        res.render('tulos', { data, originalName : capitalizedOriginalName })
+      } catch (err : any) {
+        console.log('Virhe luettaessa tiedostoa! ' + err)
+      }
+
+    } else {
+      res.render('index', {'virhe': 'Virhe: tiedosto puuttuu'})
+    } 
   })
 
 })
