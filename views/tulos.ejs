@@ -9,8 +9,12 @@
     %>
 
     <h1><%= originalName %></h1>
-    <p>Askeleita yhteensä: <%= overallSteps %>. Keskimäärin <%= averageSteps %> askelta päivässä. </p>
-
+    <p>
+      Askeleita yhteensä: <%= overallSteps %>. Keskimäärin <%= averageSteps %> askelta päivässä. 
+      <a href="/" class="mdl-button mdl-js-button mdl-button--raised">Palaa alkuun</a>
+    </p>
+    
+    <% console.log(data) %>
     <table class="mdl-data-table mdl-js-data-table">
       <thead>
         <tr>
