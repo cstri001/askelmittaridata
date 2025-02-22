@@ -28,8 +28,8 @@ const uploadHandler : express.RequestHandler = multer({
 const numValidator = (splitEntry : string[]) => {
   for (let value of splitEntry) {
     let convertedNum = Number(value)
-    console.log(convertedNum)
-    if (isNaN(convertedNum)) {
+
+    if (isNaN(convertedNum) || !convertedNum) {
       return false;
     }
   }
@@ -106,7 +106,6 @@ app.post('/upload', async (req : express.Request, res : express.Response) => {
           // Format data as array, separate entries by return/newline
           let splitData : string[] = data.split(/\r\n/g)
 
-          console.log(csvToJson(splitData))
 
           // Convert the CSV array data to JSON
           const convertedData = csvToJson(splitData)
