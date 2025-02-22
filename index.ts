@@ -26,8 +26,8 @@ const uploadHandler : express.RequestHandler = multer({
 
 // Checks whether the numeric data on each entry is actually numeric and convertable to a number - if not number, returns false immediately
 const numValidator = (splitEntry : string[]) => {
-  for (let entry of splitEntry) {
-    let convertedNum = Number(entry)
+  for (let value of splitEntry) {
+    let convertedNum = Number(value)
     console.log(convertedNum)
     if (isNaN(convertedNum)) {
       return false;
@@ -41,25 +41,26 @@ const numValidator = (splitEntry : string[]) => {
   Checks the validity of entry data with numValidator - if some entry is non-numeric and cannot be converted to a number,
   returns false. Otherwise, return JSON data.
 */
-const csvToJson = (file : string[]) => {
+const csvToJson = (data : string[]) => {
   let finalArray : Object[] = []
-  let columnNames = file[0].split(/;|\r/)
-  // Remove the entry string from the end of array
-  columnNames.pop()
-
-  // LISÄÄ TÄHÄN HEI TSEKKAUS SIITÄ, ETTÄ ONKO SPLIT ENTRYN LENGTH 4 ESIM!!!! 
-  // JOS EI, NIIN RETURN FALSE TOSSA ALLA
-
-  for (let i = 1; i < file.length -1; i++) {
+  
+  // This starts from index 1, as the column names are on index 0
+  for (let i = 1; i < data.length; i++) {
     // At this point, the data is in the form of ["01;01;2022;1000", "02;01;2022;2400",] etc
-    let splitEntry = file[i].split(/;|\r/)
+    let splitEntry = data[i].split(/;/)
 
+    // Check data validity. If any column is missing, return false and render error page
+    if (splitEntry.length !== 4) {
+      return false
+    }
+
+    console.log(splitEntry)
     if (numValidator(splitEntry)) {
       try {
         let entry = {'pp': splitEntry[0], 'kk': Number(splitEntry[1]), 'vvvv': Number(splitEntry[2]), 'askeleet': Number(splitEntry[3])}
         finalArray.push(entry)
       } catch {
-        console.log('huip');
+        console.log('Jotain meni vikaan konvertoidessa tiedostoa');
       }
     } else {
       return false
@@ -102,10 +103,12 @@ app.post('/upload', async (req : express.Request, res : express.Response) => {
           res.render('tulos', { data, originalName : capitalizedOriginalName, fileType })
         } else {
           let data : string = await fs.readFile(path.resolve(__dirname, 'public', fileType, fileName), {encoding: 'utf-8' })
-          // Make every newline in this stringified CSV into an Array item
-          let splitData : string[] = data.split(/\n/g)
+          // Format data as array, separate entries by return/newline
+          let splitData : string[] = data.split(/\r\n/g)
 
           console.log(csvToJson(splitData))
+
+          // Convert the CSV array data to JSON
           const convertedData = csvToJson(splitData)
 
           // If csvToJson returned false, i.e. something was not right when converting, render error page
@@ -113,7 +116,7 @@ app.post('/upload', async (req : express.Request, res : express.Response) => {
           if (convertedData) {
             res.render('tulos',  {data : convertedData, originalName : capitalizedOriginalName, fileType })
           } else {
-            res.render('virhe', {'virhe': 'Dataa ei voitu konvertoida. Jotain meni vikaan.'})
+            res.render('virhe', {'virhe': 'Tiedoston sisältämä data on korruptoitunut. Tietojen lukeminen ei onnistu.'})
           }
 
         }
