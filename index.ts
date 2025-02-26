@@ -4,7 +4,7 @@ import multer from 'multer';
 import fs from 'fs/promises';
 
 const app : express.Application = express();
-const port : number = Number(process.env.PORT) || 3002;
+const port : number = Number(process.env.PORT) || 3003;
 
 app.set('view engine', 'ejs');
 app.use(express.static(path.resolve(__dirname, 'public')));
@@ -29,12 +29,34 @@ const numValidator = (splitEntry : string[]) => {
   for (let value of splitEntry) {
     let convertedNum = Number(value)
 
-    if (isNaN(convertedNum) || !convertedNum) {
-      return false;
+    // If the converted number is non-numeric or some other falsy value than 0 (which would be valid as step count)
+    // return false
+    if (isNaN(convertedNum) || (!convertedNum && convertedNum !== 0)) {
+      return false; 
     }
   }
   return true;
 } 
+
+const jsonValidator = (data) => {
+  for (let entry of data) {
+    if ((Object.keys(entry)).length !== 4) {
+      return false
+    }
+
+    for (let value of entry) {
+
+      // console.log(value)
+      // console.log(typeof value)
+      if (typeof value !== 'number') {
+        return false
+      }
+    }
+  }
+
+  return true;
+
+}
 
 /* 
   Takes CSV-files and converts them to JSON files to the same format as the plain JSON files 
@@ -54,7 +76,7 @@ const csvToJson = (data : string[]) => {
       return false
     }
 
-    console.log(splitEntry)
+    
     if (numValidator(splitEntry)) {
       try {
         let entry = {'pp': splitEntry[0], 'kk': Number(splitEntry[1]), 'vvvv': Number(splitEntry[2]), 'askeleet': Number(splitEntry[3])}
@@ -100,7 +122,15 @@ app.post('/upload', async (req : express.Request, res : express.Response) => {
       try {
         if (fileType === 'json') {
           const data = JSON.parse(await fs.readFile(path.resolve(__dirname, 'public', fileType, fileName), {encoding: 'utf8'}))
-          res.render('tulos', { data, originalName : capitalizedOriginalName, fileType })
+          const validatedData = jsonValidator(data)
+          
+          
+          if (validatedData) {
+            res.render('tulos', { data, originalName : capitalizedOriginalName, fileType })
+          } else {
+            res.render('virhe', {'virhe': 'Tiedoston sisältämä data on korruptoitunut. Tietojen lukeminen ei onnistu.'})
+          }
+
         } else {
           let data : string = await fs.readFile(path.resolve(__dirname, 'public', fileType, fileName), {encoding: 'utf-8' })
           // Format data as array, separate entries by return/newline
@@ -121,6 +151,7 @@ app.post('/upload', async (req : express.Request, res : express.Response) => {
         }
       } catch (err : any) {
         console.log('Virhe luettaessa tiedostoa! ' + err)
+        res.render('virhe', {'virhe': 'Tiedoston sisältämä data on korruptoitunut. Tietojen lukeminen ei onnistu.'})
       }
       
 
