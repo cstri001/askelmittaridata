@@ -39,23 +39,22 @@ const numValidator = (splitEntry : string[]) => {
 } 
 
 const jsonValidator = (data) => {
+  // Checks if the entry for each day has the required amount of keys (4)
   for (let entry of data) {
     if ((Object.keys(entry)).length !== 4) {
       return false
     }
 
-    for (let value of entry) {
-
-      // console.log(value)
-      // console.log(typeof value)
-      if (typeof value !== 'number') {
+    // Checks each entry so that the values are numbers
+    for (let value in entry) {
+      console.log(entry[value])
+      if (typeof entry[value] !== 'number') {
         return false
       }
-    }
+    }  
   }
-
+  
   return true;
-
 }
 
 /* 
@@ -79,7 +78,7 @@ const csvToJson = (data : string[]) => {
     
     if (numValidator(splitEntry)) {
       try {
-        let entry = {'pp': splitEntry[0], 'kk': Number(splitEntry[1]), 'vvvv': Number(splitEntry[2]), 'askeleet': Number(splitEntry[3])}
+        let entry = {'pp': Number(splitEntry[0]), 'kk': Number(splitEntry[1]), 'vvvv': Number(splitEntry[2]), 'askeleet': Number(splitEntry[3])}
         finalArray.push(entry)
       } catch {
         console.log('Jotain meni vikaan konvertoidessa tiedostoa');
